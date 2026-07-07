@@ -23,7 +23,13 @@ Built and configured a logical topology of a multi-city organization featuring A
   
 ## PROTOCOLS IMPLEMENTED - What I Scripted
 - Subnet one /8 organization into 5 /16 city branches (LA, SD, SF, NY, MI) down to /30 subnets
-- VLANs (VLAN 10 "Management" /25, VLAN 20 "Server" /23 (LA only), VLAN 30 "IT" /23 (LA only), VLAN 40 "Users" /20, VLAN 50 "Wireless" /19, VLAN 250 /29 (LA only))
+- VLANs
+  - VLAN 10 "Management" /25
+  - VLAN 20 "Server" /23 (LA only)
+  - VLAN 30 "IT" /23 (LA only)
+  - VLAN 40 "Users" /20
+  - VLAN 50 "Wireless" /19
+  - VLAN 250 /29 (LA only)
 - VTP (Server/Client, domain, password)
 - Trunking
 - Inter-VLAN routing
