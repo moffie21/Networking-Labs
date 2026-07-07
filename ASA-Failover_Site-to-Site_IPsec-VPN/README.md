@@ -6,9 +6,9 @@ For educational purposes showcasing my technical networking abilities.
 Built and configured a logical topology of a multi-city organization featuring ASA and IPsec VPN routing protocols in GNS3 lab environment.
   
 ## GOALS - Proof Config Implementation Worked Successfully
-- Allow DMZ devices to ping devices in LA network.
+- Allow DMZ devices to ping LA devices.
 - Successfully have each L3 device, except ISP; SF; and MI, learn single-area OSPF routes.
-- Successfully SSH from a L2 or L3 device to LA_3650_DMZ and, or LA_3650 devices.
+- Successfully SSH from a L2 or L3 device to: LA_3650_DMZ, LA_3650, and ISP_3650_R devices.
 
 ## TOOLS
 - VM platform: VMware Workstation Pro 25H2
