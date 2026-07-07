@@ -1,0 +1,213 @@
+MI BRANCH TOPOLOGY + CONFIGURATIONS
+====================================
+ISP_3650_R  ➔  FW_MI_R  ➔  MI_2960_1  ➔  MI_2960_2  ➔  MI_Users_40
+                                                      ➔  MI_Wireless_50
+====================================
+ISP_3650_R (L3) device
+====================================
+hostname ISP_3650_R
+no ip routing
+!
+int g0/0
+ ip address 2.2.10.1 255.255.255.248
+ no shutdown
+int g0/1
+ ip address 3.3.20.65 255.255.255.252
+ no shutdown
+int g0/2
+ ip addr 4.4.21.129 255.255.255.252
+ no shutdown
+int g0/3
+ ip address 33.33.30.65 255.255.255.252
+ no shutdown
+int g1/0
+ ip address 44.44.31.129 255.255.255.252
+ no shutdown
+!
+!
+! SSH Access
+!
+ip domain-name CIS.EDU
+crypto key generate rsa modulus 2048
+!
+username admin privilege 15 secret LabPass061
+!
+line vty 0 4
+ login local
+ transport input ssh
+!
+
+====================================
+FW_MI_R (2911) (Inter-VLAN Routing) device
+====================================
+hostname FW_MI_R
+!
+interface g0/0
+ ip address 44.44.31.130 255.255.255.252
+ ip nat outside
+ no shutdown
+! 
+interface g0/1
+ no shutdown
+!
+interface g0/1.10
+ encapsulation dot1q 10
+ ip address 10.131.32.1 255.255.255.128
+ description ## Mgmt VLAN ##
+ ip nat inside
+ no shutdown
+!
+interface g0/1.40
+ encapsulation dot1q 40
+ ip address 10.131.160.1 255.255.240.0
+ description ## Users VLAN ##
+ ip nat inside
+ no shutdown
+!
+interface g0/1.50
+ encapsulation dot1q 50
+ ip address 10.131.224.1 255.255.224.0
+ description ## Wireless VLAN ##
+ ip nat inside
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 44.44.31.129
+!
+!
+! IPsec Phase 1
+!
+crypto isakmp enable
+!
+crypto isakmp policy 10
+ hash sha
+ authentication pre-share
+ group 5
+ lifetime 86400 
+ encryption aes 256
+!
+crypto isakmp key NY130MI131 address 33.33.30.66
+!
+!
+! IPsec Phase 2
+!
+ip access-list extended IPSEC_NY_LIST
+ permit ip 10.131.0.0 0.0.255.255 10.130.0.0 0.0.255.255
+!
+!
+! NAT (PAT)
+!
+ip access-list extended NAT_LIST
+ deny ip 10.131.0.0 0.0.255.255 10.130.0.0 0.0.255.255
+ permit ip 10.131.0.0 0.0.255.255 any
+!
+ip nat inside source list NAT_LIST interface g0/0 overload
+!
+!
+crypto ipsec transform-set IPSEC_SET esp-aes 256 esp-sha-hmac
+!
+crypto map IPSEC_MAP 104 ipsec-isakmp
+ match address IPSEC_NY_LIST
+ set peer 33.33.30.66
+ set transform-set IPSEC_SET
+ set pfs group14
+ set security-association lifetime seconds 86400
+!
+int g0/0
+ crypto map IPSEC_MAP
+!
+
+====================================
+MI_2960_1 (L2) (VTP Server) device
+====================================
+hostname MI_2960_1
+no ip routing
+!
+interface vlan 10
+ description Mgmt VLAN
+ ip addr 10.131.32.10 255.255.255.128
+ no shutdown
+ ip default-gateway 10.131.32.1
+!
+!
+! VLANs
+!
+vlan 10
+ name Management
+vlan 40
+ name Users
+vlan 50
+ name Wireless
+!
+!
+! VTP
+!
+vtp mode server
+vtp domain MI
+vtp password cisco
+!
+!
+! Inter-VLAN Routing
+!
+interface g0/1
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,40,50
+ no shutdown
+!
+interface g1/0
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,40,50
+ no shutdown
+!
+
+====================================
+MI_2960_2 (L2) (VTP Client) device
+====================================
+hostname MI_2960_2
+no ip routing
+!
+interface vlan 10
+ ip addr 10.131.32.20 255.255.255.128
+ no shutdown
+ ip default-gateway 10.131.32.1
+!
+!
+! VTP
+!
+vtp mode client
+vtp domain MI
+vtp password cisco
+!
+!
+! Inter-VLAN Routing
+!
+interface g1/0
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,40,50
+ no shutdown
+!
+interface g2/0
+ switchport mode access
+ switchport access vlan 40
+ no shutdown
+!
+interface g3/0
+ switchport mode access
+ switchport access vlan 50
+ no shutdown
+!
+
+====================================
+MI_Users_40 VPC
+====================================
+set pcname MI_Users_40
+ip 10.131.160.101/20 10.131.160.1
+
+
+====================================
+MI_Wireless_50 VPC
+====================================
+set pcname MI_Wireless_50
+ip 10.131.224.101/19 10.131.224.1
